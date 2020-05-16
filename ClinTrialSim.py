@@ -16,7 +16,7 @@ processes = {'Chain_Type': ['Single',
                        'Explore Further?',
                        'Provide Info to and Request Info From Sponsor'
                        ],
-                       #first simple parallel
+                       #first scimple parallel
                        [['Email to Sponsor Disclosing Fees & Trial Setup Info',
                          'Site Inspection/Assessment Visit'],
                         [ 'Request Sponsor to Provide Key Trial Info Including Protocol',
