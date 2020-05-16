@@ -1,6 +1,6 @@
 import simpy
 from simpy.events import AllOf
-from random import randint
+import pandas as pd
 
 from TimeLoader import TimeLoader
 
@@ -67,12 +67,25 @@ processes = {'Chain_Type': ['Single',
              ]
             }
 TimeFetcher = TimeLoader()
+all_names = []
+def unnest(names):
+    for name in names:
+        if isinstance(name, str):
+            all_names.append(name)
+        else:
+            unnest(name)
+unnest(processes['Names'])
+all_names.append('Total')
+
 
 
 def print_process_info(name, length):
     """ Prints event details """
     print("%s took %i" % (name, length))
     print("Current time is ", env.now)
+    times.append(length)
+    if name == all_names[-1]:
+        times.append(env.now)
 
 def single(env, names, first_fixed=False):
     """ Runs a single event """
@@ -125,9 +138,17 @@ def chainer(env):
         else:
             pass
 
+
 #if this file is being run directly
 if __name__ == "__main__":
-    #run the simulation environment
-    env = simpy.Environment()
-    p = env.process(chainer(env))
-    env.run()
+    times_dict = {}
+    for i in range(100):
+        times = []
+        #run the simulation environment
+        env = simpy.Environment()
+        p = env.process(chainer(env))
+        env.run()
+        times_dict[i] = times
+    output = pd.DataFrame(data=times_dict, index=all_names)
+    output.to_csv('sim_output.csv')
+    
