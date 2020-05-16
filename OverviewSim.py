@@ -2,6 +2,8 @@ import simpy
 from simpy.events import AllOf
 from random import randint
 
+from TimeLoader import TimeLoader
+
 processes = {'Chain_Type': ['Single',
                             'Simple Parallel',
                             'Single',
@@ -12,11 +14,11 @@ processes = {'Chain_Type': ['Single',
                             'Simple Parallel'],
              'Names': [# first single
                        ['Sponsor Contacts CT Co-ord/Mgr or PI',
-                       'Refer to Start Up Specialist',
+                       'Refer to SSS or Co-ordinator',
                        'Complete CDA',
                        'Sponsor Provides Protocol',
                        'Co-ord and PI decide if they want to explore further',
-                       'Co-ord and PI explore further - read Protocol',
+                       'Co-ord and PI explore further - read Protocol ',
                        'Receive Key Trial Information from Sponsor',
                        'Provide Trial Start Up information to Sponsor'],
                        # first simple parallel
@@ -49,8 +51,8 @@ processes = {'Chain_Type': ['Single',
                        ['Request Relevant Docs from Sponsor',
                        'Lead Site Approved',
                        'Lead Site Approval Letter and Documents Received ',
-                       'PICFs Updated',
-                       'Sponsor Approval of PICFs'],
+                       'PICF\'s Updated',
+                       'Sponsor Approval of PICF\'s'],
                        ['Preparation of Submission Documents']],
                        # fourth single
                        ['Submit for REGO with all attachments',
@@ -64,6 +66,7 @@ processes = {'Chain_Type': ['Single',
                        ['Receive Notification of Site Activation']]
              ]
             }
+TimeFetcher = TimeLoader()
 
 
 def print_process_info(name, length):
@@ -74,8 +77,10 @@ def print_process_info(name, length):
 def single(env, names, first_fixed=False):
     """ Runs a single event """
     for name in names:
-        #current generation of trip time
-        length = randint(1,5)
+        #generation of trip time
+        TimeFetcher.get_activity_data(name)
+        length = TimeFetcher.sample
+        #length = randint(1,5)
         yield env.timeout(length)
         #additional call to print event info
         print_process_info(name, length)
