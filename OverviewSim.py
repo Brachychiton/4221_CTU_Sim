@@ -7,10 +7,10 @@ from TimeLoader import TimeLoader
 processes = {'Chain_Type': ['Single',
                             'Simple Parallel',
                             'Single',
-                            'Sinple Parallel',
+                            'Simple Parallel',
                             'Single',
                             'Stage 2 Parallel',
-                            'Single'
+                            'Single',
                             'Simple Parallel'],
              'Names': [# first single
                        ['Sponsor Contacts CT Co-ord/Mgr or PI',
@@ -75,8 +75,6 @@ def unnest(names):
         else:
             unnest(name)
 unnest(processes['Names'])
-all_names.append('Total')
-
 
 
 def print_process_info(name, length):
@@ -84,8 +82,6 @@ def print_process_info(name, length):
     print("%s took %i" % (name, length))
     print("Current time is ", env.now)
     times.append(length)
-    if name == all_names[-1]:
-        times.append(env.now)
 
 def single(env, names, first_fixed=False):
     """ Runs a single event """
@@ -150,5 +146,7 @@ if __name__ == "__main__":
         env.run()
         times_dict[i] = times
     output = pd.DataFrame(data=times_dict, index=all_names)
+    output.loc['Total Process Time'] = output.sum(axis=0)
+    output['Mean Time'] = output.mean(axis=1)
     output.to_csv('sim_output.csv')
     
