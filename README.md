@@ -1,7 +1,6 @@
 # 4221_CTU_Sim
-Simple model implemented in Simpy of the clinical trials process. Completed as part of the 2020 Sem1 ENGN4221 Clinical Trials Project.
-
-ClinTrialSim does the heavy lifting, running each of the flow diagram processes using the simpy event simulator. 
-OverViewSim works with the actual data provided to us to perform time based simulations and return the total process time.
-TimeLoader imports the time data and generates a distribution which describes the event's time characteristics, as described in the following jupyter notebook.
-The StatDistExp looks at the statistical distibrution used, originally used for experimenting with the scipy distributions but now is useful for understanding how they are implemented.
+Simple model implemented in SimPy of the clinical trials process. Completed as part of the 2020 Sem1 ENGN4221 Clinical Trials Project. \
+As a starting point, an understanding should be developed of the how the SimPy module functions. The documentation is available at: https://simpy.readthedocs.io/en/latest/. \
+This implementation takes directly from the process diagrams produced as part of the project. OverViewSim models the overview process diagram through the SimPy framework. Activity times are generated from the csv through the TimeLoader class and activities can be specified to determine the effect of reducing activity time.\
+The StatDistExp jupyter notebook looks at the statistical distibrution used. This is useful for for understanding how they are implemented and weaknessses inherent with this. \
+ClinTrialSim is deprecated. It was the original focus of development, aiming to model each of the specific stage diagrams. On the basis that activity time data could not be provided at this level, development was instead focused on the OverviewSim. It does, however, serve as a simpler implementation which will be easier to understand. This currently model the Initiation and Stage 1 Submission Processes. 
