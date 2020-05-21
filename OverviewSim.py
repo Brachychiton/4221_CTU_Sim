@@ -1,9 +1,13 @@
 import simpy
 from simpy.events import AllOf
 import pandas as pd
-
 from TimeLoader import TimeLoader
 
+""" Performs 100 simulations of the overview process diagram based on
+overview_times.csv. Must be understood in reference to the diagram."""
+
+# this assigns chain types to all individual chains of the overview process map
+# acts as the 'cook book' which translates the process diagram for the model run
 processes = {'Chain_Type': ['Single',
                             'Simple Parallel',
                             'Single',
@@ -83,54 +87,77 @@ def print_process_info(name, length):
     print("Current time is ", env.now)
     times.append(length)
 
-def single(env, names, first_fixed=False):
+
+def single(env, names, t_doc_request):
     """ Runs a single event """
     for name in names:
         #generation of trip time
-        TimeFetcher.get_activity_data(name)
-        length = TimeFetcher.sample
-        #length = randint(1,5)
+        if name == 'Request Relevant Docs from Sponsor':
+        # for simplification of model this process occurs in three chains
+        # called at same time but requires consistency in activity time
+            if t_doc_request == 0:
+                #initialised to zero for first call
+                TimeFetcher.get_activity_data(name)
+                length = TimeFetcher.sample
+                t_doc_request = length
+            else:
+                #else we already have a time for this process
+                length = t_doc_request
+        else:
+            #else it's any of the other process so get time
+            TimeFetcher.get_activity_data(name)
+            length = TimeFetcher.sample
+        #this yield call slots the event time within the process
         yield env.timeout(length)
         #additional call to print event info
         print_process_info(name, length)
 
-def simple_parallel(env, names):
+def simple_parallel(env, names, t_doc_request):
     """ Runs n=len(names) events in parallel """
-    parallel_events = [env.process(single(env, name)) for name in names]
+    parallel_events = [env.process(single(env, name, t_doc_request)) for name in names]
     yield AllOf(env, parallel_events)
 
-def stage_2_sub_parallel(env, names):
+def stage_2_sub_parallel(env, names, t_doc_request):
     """ Produces parallel process generator for parallel stage 1 stubs """
-    parallel_events = [env.process(stage_2_sub_stub(env, name)) for name in names]
+    #make list of all invididual sub processes chains
+    parallel_events = [env.process(stage_2_sub_stub(env, name, t_doc_request)) for name in names]
+    #yields them in parallel
     yield AllOf(env, parallel_events)
 
-def stage_2_sub_stub(env, names):
+def stage_2_sub_stub(env, names, t_doc_request):
     """ Specific event run setup for the flow diagram stub in stage 2 sub """
+    #this chain is a simple single process chain
     if names[0] == "Preparation of Submission Documents":
-        yield env.process(single(env, names))
+        yield env.process(single(env, names, t_doc_request))
+    #this chain is the same
     elif names[0] == 'Request Relevant Docs from Sponsor':
-        yield env.process(single(env, names))
+        yield env.process(single(env, names, t_doc_request))
+    #complex section of the chain must be further broken down
     else:
         for i, name in enumerate(names):
+            #first chain is a simple parallel
             if i == 0:
-                yield env.process(simple_parallel(env, name))
+                yield env.process(simple_parallel(env, name, t_doc_request))
+            #second is single chain
             else:
-                yield env.process(single(env, name))
+                yield env.process(single(env, name, t_doc_request))
 
 def chainer(env):
     """ Chains together all the separate process to operate the whole simulation.
     Goes off the 'processes' dict at top of file. """
+    #initialising time for repated processes
+    t_doc_request = 0
     #iterating through chain type
     for i, chain_type in enumerate(processes['Chain_Type']):
         #get relevant process name or nested list
         names = processes['Names'][i]
         #basing process function choice on chain type
         if chain_type == 'Single':
-            yield env.process(single(env, names))
+            yield env.process(single(env, names, t_doc_request))
         elif chain_type == 'Simple Parallel':
-            yield env.process(simple_parallel(env, names))
+            yield env.process(simple_parallel(env, names, t_doc_request))
         elif chain_type == 'Stage 2 Parallel':
-            yield env.process(stage_2_sub_parallel(env, names))
+            yield env.process(stage_2_sub_parallel(env, names, t_doc_request))
         else:
             pass
 

@@ -13,7 +13,7 @@ class TimeLoader:
         self.times = self.times.loc[activity]
         self.times = self.times.to_dict()
         for _ in range(10):
-            if self.sample < 0:
+            if self.sample <= 0:
                 self.gen_time()
             else:
                 break
@@ -23,10 +23,11 @@ class TimeLoader:
         t_min = self.times['Min']
         t_max = self.times['Max']
         t_sig = self.times['Mean']
+        t_scale = min(t_sig-t_min, t_max-t_sig)/3*2
         if t_min == t_max == t_sig:
             self.sample = t_min
         else:
-            self.sample = truncnorm.rvs(a=t_min-t_sig, b=t_max-t_sig, scale=10, size=1)[0]
+            self.sample = truncnorm.rvs(a=t_min-t_sig, b=t_max-t_sig, scale=t_scale, size=1)[0]
             self.sample += t_sig
             self.sample = int(self.sample)
 
