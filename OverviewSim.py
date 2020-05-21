@@ -108,6 +108,7 @@ def print_process_info(name, length):
     """ Prints event details """
     print("%s took %i" % (name, length))
     print("Current time is ", env.now)
+    #appending to activity time vector
     times.append(length)
 
 
@@ -187,9 +188,13 @@ def chainer(env):
 
 #if this file is being run directly
 if __name__ == "__main__":
+    """ testing implies whether modification are made within the TimeLoader class to
+    adjust target activity times """
     if not testing:
+        #initialise time class
         TimeFetcher = TimeLoader()
         times_dict = {}
+        #1000 stochastic simulations run
         for i in range(1000):
             times = []
             #run the simulation environment
@@ -197,11 +202,13 @@ if __name__ == "__main__":
             p = env.process(chainer(env))
             env.run()
             times_dict[i] = times
+        #outputting results to csv file
         output = pd.DataFrame(data=times_dict, index=all_names)
         output.loc['Total Process Time'] = output.sum(axis=0)
         output['Mean Time'] = output.mean(axis=1)
         output.to_csv('sim_output.csv')
     if testing:
+        #same as above but with test sample lists inputted to TimeLoader class
         for i, test_sample in enumerate(test_samples):
             TimeFetcher = TimeLoader(test_sample)
             times_dict = {}
