@@ -70,7 +70,30 @@ processes = {'Chain_Type': ['Single',
                        ['Receive Notification of Site Activation']]
              ]
             }
-TimeFetcher = TimeLoader()
+#activities in the process which are being analysed for how varying
+# process time affects total process length
+test_samples = [
+            [
+                'Request Relevant Docs from Sponsor',
+                'Lead Site Approved',
+                'Lead Site Approval Letter and Documents Received',
+                'PICF\'s Updated',
+                'Sponsor Approval of PICF\'s'
+            ],
+            [
+                'Request Relevant Docs from Sponsor',
+                'Supply CTRA and Budget to Finance Team',
+                'Update CTRA Schedule 1 and 2',
+                'Draft Budget Spreadsheet'
+            ],
+            [
+                'Finance and Co-ord Review Budget',
+                'Negotiate Budget with Sponsor',
+                'Prepare Finance Summary'
+            ]
+        ]
+# boolean which defines whether testing is occurring
+testing = False
 all_names = []
 def unnest(names):
     for name in names:
@@ -164,16 +187,33 @@ def chainer(env):
 
 #if this file is being run directly
 if __name__ == "__main__":
-    times_dict = {}
-    for i in range(100):
-        times = []
-        #run the simulation environment
-        env = simpy.Environment()
-        p = env.process(chainer(env))
-        env.run()
-        times_dict[i] = times
-    output = pd.DataFrame(data=times_dict, index=all_names)
-    output.loc['Total Process Time'] = output.sum(axis=0)
-    output['Mean Time'] = output.mean(axis=1)
-    output.to_csv('sim_output.csv')
+    if not testing:
+        TimeFetcher = TimeLoader()
+        times_dict = {}
+        for i in range(1000):
+            times = []
+            #run the simulation environment
+            env = simpy.Environment()
+            p = env.process(chainer(env))
+            env.run()
+            times_dict[i] = times
+        output = pd.DataFrame(data=times_dict, index=all_names)
+        output.loc['Total Process Time'] = output.sum(axis=0)
+        output['Mean Time'] = output.mean(axis=1)
+        output.to_csv('sim_output.csv')
+    if testing:
+        for i, test_sample in enumerate(test_samples):
+            TimeFetcher = TimeLoader(test_sample)
+            times_dict = {}
+            for j in range(1000):
+                times = []
+                #run the simulation environment
+                env = simpy.Environment()
+                p = env.process(chainer(env))
+                env.run()
+                times_dict[j] = times
+            output = pd.DataFrame(data=times_dict, index=all_names)
+            output.loc['Total Process Time'] = output.sum(axis=0)
+            output['Mean Time'] = output.mean(axis=1)
+            output.to_csv('sim_output_' + str(i) + '.csv')
     
